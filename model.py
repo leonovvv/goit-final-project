@@ -1,5 +1,5 @@
 ﻿from collections import UserDict
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 class Name():
@@ -79,6 +79,74 @@ class Record:
         self.email = None
         self.address = None
         self.phones = []
+        
+    def add_phone(self, phone):
+        if self.find_phone(phone) is not None:
+            raise ValueError("Record.PhoneDuplicate")
+
+        self.phones.append(Phone(phone))
+
+    def get_phones(self):
+        return ', '.join(str(p) for p in self.phones)
+
+    def edit_phone(self, old_phone, new_phone):
+        _ = Phone(old_phone)
+        new_phone = Phone(new_phone)
+        
+        if self.find_phone(old_phone) is None:
+            raise ValueError("Record.PhoneNotFound")
+
+        if self.find_phone(new_phone) is not None:
+            raise ValueError("Record.PhoneDuplicate")
+
+        i = 0
+        while i < len(self.phones):
+            if str(self.phones[i]) == old_phone:
+                self.phones[i] = new_phone
+                break
+            i += 1
+    
+    def remove_phone(self, phone):
+        phone = self.find_phone(phone)
+
+        if phone is None:
+            raise ValueError("Record.PhoneNotFound")
+        else:
+            self.phones.remove(phone)
+
+    def find_phone(self, lookup_phone):
+        for phone in self.phones:
+            if str(phone) == lookup_phone:
+                return phone
+
+        return None
+        
+    def set_birthday(self, birthday):
+        self.birthday = Birthday(birthday)
+
+    def get_birthday(self):
+        return str(self.birthday)
+
+    def remove_birthday(self):
+        self.birthday = None
+
+    def set_email(self, email):
+        self.email = Email(email)
+
+    def get_email(self):
+        return str(self.email)
+
+    def remove_email(self):
+        self.email = None
+
+    def set_address(self, address):
+        self.address = Address(address)
+
+    def get_address(self):
+        return str(self.address)
+
+    def remove_address(self):
+        self.address = None
 
     def __str__(self):
         result = f"Name: {str(self.name)}"
@@ -98,4 +166,103 @@ class Record:
         return result
 
 class AddressBook(UserDict):
-    pass
+    def add_record(self, record):
+        if record.name in self.data:
+            raise ValueError('AddressBook.DuplicateName')
+
+        if isinstance(record, Record):
+            self.data[str(record.name)] = record
+        else:
+            raise ValueError("AddressBook.ValueMustBeRecord")
+
+    def find(self, field, value):
+        result = None
+        if field == "name":
+            if value in self.data:
+                result = self.data[value]
+        elif field == "email":
+            for record in self.values():
+                if str(record.email) == value:
+                    result = value
+        elif field == "phone":
+            for record in self.values():
+                if str(record.find_phone(value)) != None:
+                    result = value
+        elif field == "birthday":
+            for record in self.values():
+                if str(record.birthday) == value:
+                    result = value
+        elif field == "address":
+            for record in self.values():
+                if str(record.address) == value:
+                    result = value
+        else:
+            raise ValueError()
+
+        if result is None:
+            raise ValueError('AddressBook.NotFound')
+
+        return result
+
+    def find_many(self, field, value):
+        result = []
+        value = value.lower()
+        if field == "name":
+            for record in self.values():
+                if value in str(record.name).lower():
+                    result.append(record)
+        elif field == "email":
+            for record in self.values():
+                if value in str(record.email).lower():
+                    result.append(record)
+        elif field == "phone":
+            for record in self.values():
+                if record.find_phone(value) != None:
+                    result.append(record)
+        elif field == "birthday":
+            for record in self.values():
+                if value in str(record.birthday):
+                    result.append(record)
+        elif field == "address":
+            for record in self.values():
+                if value in str(record.address).lower():
+                    result.append(record)
+        else:
+            raise ValueError()
+
+        return result
+
+    def remove(self, name):
+        if name in self.data:
+            self.data.pop(name)
+        else:
+            raise ValueError('AddressBook.NotFound')
+
+    def get_upcoming_birthdays(self, days=7):
+        if not isinstance(days, int):
+            raise ValueError("AddressBook.DaysMustBeInt")
+
+        today = datetime.today().date()
+        upcoming_birthdays = []
+
+        for name in self.data:
+            birthday = self.data[name].birthday
+            if birthday is None:
+                continue
+            birthday_this_year = birthday.replace_year(today.year)
+        
+            if birthday_this_year < today:
+                birthday_this_year = birthday.replace_year(today.year + 1)
+        
+            delta_days = (birthday_this_year - today).days
+        
+            if 0 <= delta_days <= days:
+                if birthday_this_year.weekday() >= 5:
+                    birthday_this_year += timedelta(days=(7 - birthday_this_year.weekday()))
+            
+                upcoming_birthdays.append({
+                    'name': name,
+                    'congratulation_date': birthday_this_year.strftime("%d.%m.%Y")
+                })
+
+        return upcoming_birthdays
