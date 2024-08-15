@@ -1,4 +1,4 @@
-﻿from model import AddressBook
+﻿from model import AddressBook, NoteBook
 import viewmodel as vm
 
 def main():
@@ -11,6 +11,15 @@ def main():
     else:
         address_book = load_result
 
+    load_result = vm.load_data("notebook.pkl")
+    if isinstance(load_result, str):
+        print(load_result)
+        note_book = NoteBook()
+    elif load_result is None:
+        note_book = NoteBook()
+    else:
+        note_book = load_result
+
     print("Welcome to the assistant bot!")
     while True:
         user_input = input("Enter a command: ")
@@ -19,6 +28,10 @@ def main():
         if command in ["close", "exit"]:
             print("Good bye!")
             save_result = vm.save_data(address_book, "addressbook.pkl")
+            if save_result is not None:
+                print(save_result)
+            
+            save_result = vm.save_data(note_book, "notebook.pkl")
             if save_result is not None:
                 print(save_result)
 
@@ -61,6 +74,14 @@ def main():
             print(vm.show_address(args, address_book))
         elif command == "remove-address":
             print(vm.remove_address(args, address_book))
+        elif command == "add-note":
+            print(vm.add_note(args, note_book))
+        elif command == "get-note":
+            print(vm.get_note(args, note_book))
+        elif command == "update-note":
+            print(vm.add_note(args, note_book))
+        elif command == "remove-note":
+            print(vm.remove_note(args, note_book))
         else:
             print("Invalid command.")
 
