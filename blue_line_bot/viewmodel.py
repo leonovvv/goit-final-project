@@ -1,5 +1,13 @@
-﻿from model import AddressBook, Record, NoteBook, Note
+﻿from blue_line_bot.model import AddressBook, Record, NoteBook, Note
+from colorama import Fore
+from prettytable import PrettyTable
 import pickle
+
+def error_output(line):
+    return Fore.LIGHTRED_EX + "! " + line
+
+def info_output(line):
+    return Fore.LIGHTYELLOW_EX + "! " + line
 
 def error_decorator(func):
     def inner(*args, **kwargs):
@@ -8,50 +16,50 @@ def error_decorator(func):
         except ValueError as ex:
             message = str(ex)
             if message == "Name.Required":
-                return "Name can not be empty"
+                return error_output("Name can not be empty")
             elif message == "Phone.NotNumeric":
-                return "Phone must be numeric"
+                return error_output("Phone must be numeric")
             elif message == "Phone.LengthMustBe10":
-                return "Phone lenght must be 10 digits"
+                return error_output("Phone lenght must be 10 digits")
             elif message == "Birthday.Invalid":
-                return "Birthday should be in format d.m.Y (e.g. 27.1.2000)"
+                return error_output("Birthday should be in format d.m.Y (e.g. 27.1.2000)")
             elif message == "Email.Required":
-                return "Email can not be empty"
+                return error_output("Email can not be empty")
             elif message == "Email.Invalid":
-                return "Input a valid email"
+                return error_output("Input a valid email")
             elif message == "Address.Required":
-                return "Address can not be empty"
+                return error_output("Address can not be empty")
             elif message == "Record.PhoneDuplicate":
-                return "This phone already exists in the record"
+                return error_output("This phone already exists in the record")
             elif message == "Record.PhoneNotFound":
-                return "This phone does not exist in the record"
+                return error_output("This phone does not exist in the record")
             elif message == "AddressBook.DuplicateName":
-                return "This name is already exists in the address book"
+                return error_output("This name is already exists in the address book")
             elif message == "AddressBook.NotFound":
-                return "This value does not exist in the address book"
+                return error_output("This value does not exist in the address book")
             elif message == "AddressBook.DaysMustBeInt":
-                return "Days value should be integer"
+                return error_output("Days value should be integer")
             elif message == "NoteBook.NotFound":
-                return "This value does not exist in the note book"
+                return error_output("This value does not exist in the note book")
             elif message == "Birthdays.DaysMustBeNumeric":
-                return "Days for birthdays must be numeric value"
+                return error_output("Days for birthdays must be numeric value")
             else:
-                return "Input a valid command."
+                return error_output("Input a valid command.")
         except KeyError:
-            return "Contact was not found"
+            return info_output("Contact was not found")
         except IndexError:
-            return "Give me contact name to return phone for, please."
+            return info_output("Give me contact name to return phone for, please.")
         except IOError as ex:
             message = str(ex)
             if message == "IO.SaveFailed":
-                return "Failed to save address book"
+                return error_output("Failed to save address book")
             elif message == "IO.LoadFailed":
-                return "Failed to save address book"
+                return error_output("Failed to save address book")
             else:
-                return "Oops... Something went wrong"
+                return error_output("Oops... Something went wrong")
         except Exception as ex:
             print(ex)
-            return "Oops... Something went wrong"
+            return error_output("Oops... Something went wrong")
 
     return inner
 
@@ -61,6 +69,9 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
+#region Record
+#Updates are split into separate functions
+#Create
 @error_decorator
 def add_contact(args, book: AddressBook):
     name, phone, email, birthday, *address_array = args + [None, None, None]
@@ -91,6 +102,7 @@ def add_contact(args, book: AddressBook):
 
     return message
 
+#Read
 @error_decorator
 def get_records(args, book):
     field, value = args
@@ -99,28 +111,39 @@ def get_records(args, book):
     if len(records) == 0:
         return "No contacts match the filter."
 
-    result = ""
-    for record in records:
-        result += str(record) + "\r\n\r\n"
-
-    return result.strip()
+    return records_table(records)
 
 @error_decorator
 def show_all(book):
     if len(book) == 0:
         return "Address book is empty."
 
-    result = ""
-    for record in book.values():
-        result += f"{record}\r\n\r\n"
-    return result.strip()
+    return records_table(book.values())
 
+def records_table(records: list):
+    table = PrettyTable()
+    table.field_names = ["Name", "Email", "Birthday", "Phones", "Address"]
+
+    for record in sorted(records, key=lambda record: str(record.name)):
+        name = Fore.CYAN + str(record.name) + Fore.RESET
+        email = ((Fore.GREEN + str(record.email)) if record.email is not None else "---") + Fore.RESET
+        birthday = ((Fore.GREEN + str(record.birthday)) if record.birthday is not None else "---") + Fore.RESET
+        phones = ((Fore.YELLOW + record.get_phones()) if record.get_phones() else "---") + Fore.RESET
+        address = ((Fore.GREEN + str(record.address)) if record.address is not None else "---") + Fore.RESET
+        table.add_row([name, email, birthday, phones, address])
+    return table
+
+#Delete
 @error_decorator
 def remove_record(args, book):
     name, *_ = args
     book.remove(name)
     return "Contact removed"
 
+#endregion
+
+#region Phone  
+#Create
 @error_decorator
 def add_phone(args, book):
     name, phone = args
@@ -128,6 +151,7 @@ def add_phone(args, book):
 
     return "Contact updated."
 
+#Read
 @error_decorator
 def get_phones(args, book):
     name = args[0]
@@ -138,6 +162,7 @@ def get_phones(args, book):
     else:
         return record.get_phones()
 
+#Update
 @error_decorator
 def change_phone(args, book):
     name, old_phone, new_phone = args
@@ -145,24 +170,30 @@ def change_phone(args, book):
 
     return "Contact updated."
 
+#Delete
 @error_decorator
 def remove_phone(args, book):
     name, phone = args
     book.find("name", name).remove_phone(phone)
 
     return "Phone removed."
-    
+#endregion
+
+#region Birthday
+#Create/Update
 @error_decorator
 def set_birthday(args, book):
     name, birthday = args
     book.find("name", name).set_birthday(birthday)
     return 'Birthday is set.'
 
+#Read
 @error_decorator
 def show_birthday(args, book):
     name, *_ = args
     return str(book.find("name", name).birthday)
 
+#Delete
 @error_decorator
 def remove_birthday(args, book):
     name, *_ = args
@@ -188,24 +219,32 @@ def birthdays(args, book):
         result += f"{item['name']} - {item['congratulation_date']}\r\n"
 
     return result.strip()
-    
+#endregion
+
+#region Email
+#Create/Update
 @error_decorator
 def set_email(args, book):
     name, email = args
     book.find("name", name).set_email(email)
     return 'Email is set.'
 
+#Read
 @error_decorator
 def show_email(args, book):
     name, *_ = args
     return str(book.find("name", name).email)
 
+#Delete
 @error_decorator
 def remove_email(args, book):
     name, *_ = args
     book.find("name", name).remove_email()
     return "Email removed."
+#endregion
 
+#region Address
+#Create/Update
 @error_decorator
 def set_address(args, book):
     name, *address_array = args
@@ -213,17 +252,21 @@ def set_address(args, book):
     book.find("name", name).set_address(address)
     return 'Address is set.'
 
+#Read
 @error_decorator
 def show_address(args, book):
     name, *_ = args
     return book.find("name", name).address
 
+#Delete
 @error_decorator
 def remove_address(args, book):
     name, *_ = args
     book.find("name", name).remove_address()
     return "Address removed."
+#endregion
 
+#region Notes
 @error_decorator
 def add_note(args, book: NoteBook):
     title, *note_array = args
@@ -244,17 +287,14 @@ def add_note(args, book: NoteBook):
 @error_decorator
 def get_note(args, book: NoteBook):
     field, value = args
-    return str(book.find(field, value))
+    return notes_table([book.find(field, value)])
 
 @error_decorator
 def get_all_notes(book):
     if len(book) == 0:
         return "Note book is empty."
 
-    result = ""
-    for note in book.values():
-        result += f"{note}\r\n"
-    return result.strip()
+    return notes_table(book.values())
 
 @error_decorator
 def get_notes(args, book: NoteBook):
@@ -270,8 +310,19 @@ def get_notes(args, book: NoteBook):
 
     if len(result) == 0:
         return "Zero notes with this tag"
+    return notes_table(result)
 
-    return str("\r\n".join(str(i) for i in sorted(result, key=lambda note: note.tags)))
+def notes_table(notes: list):
+    table = PrettyTable()
+    table.field_names = ["Title", "Tags", "Note"]
+
+    for note in sorted(notes, key=lambda note: note.tags):
+        title = Fore.CYAN + note.title + Fore.RESET
+        tags = ((Fore.MAGENTA + ', '.join(note.tags)) if note.tags else "---") + Fore.RESET
+        text = ((Fore.GREEN + note.note) if note.note else "---") + Fore.RESET
+        table.add_row([title, tags, text])
+    
+    return table
 
 @error_decorator
 def remove_note(args, book: NoteBook):
@@ -284,6 +335,7 @@ def add_tag(args, book: NoteBook):
     title, tag, *_ = args
     book.find("title", title).add_tag(tag)
     return "Tag added"
+#endregion
 
 @error_decorator
 def save_data(book, filename):
@@ -303,3 +355,41 @@ def load_data(filename):
         return None
     except Exception:
         raise IOError("IO.LoadFailed")
+
+def help():
+    return """Here is the list of commands:
+
+hello - print greeting
+
+add <name> <phone> <email> <birthday> <address> - add new contact with optional info
+get <field name> <field value> - get contact's info (e.g. get name Vadym)
+all - show all contacts
+remove <name> - remove contact by name
+
+add-phone <name> <phone> - add phone number to contact
+get-phone <name> - get contact's phone numbers
+change-phone <name><old_phone> <new_phone> - change contact's phone number
+remove-phone <name> <phone> - remove contact's phone number
+
+set-birthday <name> <birthday> - set birthday to contact in format d.m.Y (e.g. 27.1.2000) 
+get-birthday <name> - get contact's birthday in format d.m.Y (e.g. 27.1.2000) 
+remove-birthday <name> <birthday> - remove contact's birthday
+birthdays <days> - get birthdays upcoming in <days> number of days (optional, default value = 7)
+
+set-email <name> <email> - set email to contact
+get-email <name> - get contact's email
+remove-email <name> <email> - remove contact's email
+
+set-address <name> <address> - set address to contact
+get-address <name> - get contact's address
+remove-address <name> <address> - remove contact's address
+
+add-note <title> <note> - add note with given title (title is 1 word)
+get-note <field name> <field value> - get note by field (e.g. get title Todo)
+get-notes <tag>  - show notes with optional tag filter
+add-tag <title> <tag> - add tag to note
+update-note <title> <note> - update note with given title (title is 1 word)
+remove-note <title> - remove note by title
+
+close - save address book and exit
+exit - save address book and exit""" 

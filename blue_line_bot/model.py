@@ -80,17 +80,21 @@ class Record:
         self.address = None
         self.phones = []
 
+#region Phone       
+    #Create
     def add_phone(self, phone):
         if self.find_phone(phone) is not None:
             raise ValueError("Record.PhoneDuplicate")
 
         self.phones.append(Phone(phone))
 
+    #Read
     def get_phones(self):
         return ', '.join(str(p) for p in self.phones)
 
+    #Update
     def edit_phone(self, old_phone, new_phone):
-        _ = Phone(old_phone)
+        _ = Phone(old_phone) #just to validate
         new_phone = Phone(new_phone)
         
         if self.find_phone(old_phone) is None:
@@ -106,6 +110,7 @@ class Record:
                 break
             i += 1
     
+    #Delete
     def remove_phone(self, phone):
         phone = self.find_phone(phone)
 
@@ -114,39 +119,56 @@ class Record:
         else:
             self.phones.remove(phone)
 
+    #Internal helper method
     def find_phone(self, lookup_phone):
         for phone in self.phones:
             if str(phone) == lookup_phone:
                 return phone
 
         return None
-        
+#endregion
+
+#region Birthday
+    #Create/update
     def set_birthday(self, birthday):
         self.birthday = Birthday(birthday)
 
+    #Read
     def get_birthday(self):
         return str(self.birthday)
 
+    #Delete
     def remove_birthday(self):
         self.birthday = None
-        
+#endregion
+
+#region Email
+    #Create/update
     def set_email(self, email):
         self.email = Email(email)
 
+    #Read
     def get_email(self):
         return str(self.email)
 
+    #Delete
     def remove_email(self):
         self.email = None
-        
+#endregion
+
+#region Address
+    #Create/update
     def set_address(self, address):
         self.address = Address(address)
 
+    #Read
     def get_address(self):
         return str(self.address)
 
+    #Delete
     def remove_address(self):
         self.address = None
+#endregion
 
     def __str__(self):
         result = f"Name: {str(self.name)}"
@@ -166,6 +188,7 @@ class Record:
         return result
 
 class AddressBook(UserDict):
+    #Create
     def add_record(self, record):
         if record.name in self.data:
             raise ValueError('AddressBook.DuplicateName')
@@ -175,6 +198,7 @@ class AddressBook(UserDict):
         else:
             raise ValueError("AddressBook.ValueMustBeRecord")
 
+    #Read
     def find(self, field, value):
         result = None
         if field == "name":
@@ -232,6 +256,7 @@ class AddressBook(UserDict):
 
         return result
 
+    #Delete
     def remove(self, name):
         if name in self.data:
             self.data.pop(name)
@@ -281,6 +306,7 @@ class Note:
         return f"Title: {self.title}\r\nTags: {self.tags}\r\nNote: {self.note}"
 
 class NoteBook(UserDict):
+    #Create
     def add_note(self, note):
         if note.title in self.data:
             raise ValueError('NoteBook.DuplicateTitle')
@@ -290,6 +316,7 @@ class NoteBook(UserDict):
         else:
             raise ValueError("NoteBook.ValueMustBeNote")
 
+    #Read
     def find(self, field, value):
         result = None
         if field == "title":
@@ -310,6 +337,7 @@ class NoteBook(UserDict):
             raise ValueError('NoteBook.NotFound')
         return result
 
+    #Delete
     def remove(self, title):
         if title in self.data:
             self.data.pop(title)
