@@ -1,7 +1,8 @@
-﻿from model import AddressBook, NoteBook
-import viewmodel as vm
+﻿from blue_line_bot.model import AddressBook, NoteBook
+import blue_line_bot.viewmodel as vm
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.styles import Style
 
 commands = [
         "add",
@@ -35,7 +36,17 @@ commands = [
 
 completer = WordCompleter(commands, ignore_case=True)
 
-session = PromptSession(completer=completer)
+style = Style.from_dict(
+    {
+        "completion-menu.completion": "bg:#008888 #ffffff",
+        "completion-menu.completion.current": "bg:#00aaaa #000000",
+        "scrollbar.background": "bg:#88aaaa",
+        "scrollbar.button": "bg:#222222",
+        "prompt": "ansiblue"
+    }
+)
+
+session = PromptSession(completer=completer, style=style)
 
 def main():
     load_result = vm.load_data("addressbook.pkl")
@@ -122,8 +133,10 @@ def main():
             print(vm.add_note(args, note_book))
         elif command == "remove-note":
             print(vm.remove_note(args, note_book))
+        elif command == "help":
+            print(vm.help())
         else:
-            print("Invalid command.")
+            print(vm.error_output("Invalid command."))
 
 if __name__ == "__main__":
     main()
