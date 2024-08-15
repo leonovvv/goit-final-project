@@ -1,4 +1,4 @@
-﻿from model import AddressBook, Record
+﻿from model import AddressBook, Record, NoteBook, Note
 import pickle
 
 def error_decorator(func):
@@ -31,6 +31,8 @@ def error_decorator(func):
                 return "This value does not exist in the address book"
             elif message == "AddressBook.DaysMustBeInt":
                 return "Days value should be integer"
+            elif message == "NoteBook.NotFound":
+                return "This value does not exist in the note book"
             elif message == "Birthdays.DaysMustBeNumeric":
                 return "Days for birthdays must be numeric value"
             else:
@@ -91,16 +93,16 @@ def add_contact(args, book: AddressBook):
 
 @error_decorator
 def get_records(args, book):
-
     field, value = args
     records = book.find_many(field, value)
 
     if len(records) == 0:
         return "No contacts match the filter."
-    result = ''
 
+    result = ""
     for record in records:
         result += str(record) + "\r\n\r\n"
+
     return result.strip()
 
 @error_decorator
@@ -221,6 +223,44 @@ def remove_address(args, book):
     name, *_ = args
     book.find("name", name).remove_address()
     return "Address removed."
+
+@error_decorator
+def add_note(args, book: NoteBook):
+    title, *note_array = args
+    note_text = " ".join(i for i in note_array if i is not None).strip()
+    
+    message = "Note updated."
+    note = None
+
+    if title not in book:
+        note = Note(title, note_text)
+        book.add_note(note)
+        message = "Note added."
+    else:
+        book[title].note = note
+
+    return message
+
+@error_decorator
+def get_note(args, book: NoteBook):
+    field, value = args
+    return str(book.find(field, value))
+
+@error_decorator
+def get_all_notes(book):
+    if len(book) == 0:
+        return "Note book is empty."
+
+    result = ""
+    for note in book.values():
+        result += f"{note}\r\n"
+    return result.strip()
+
+@error_decorator
+def remove_note(args, book: NoteBook):
+    title, *_ = args
+    book.remove(title)
+    return "Note removed"
 
 @error_decorator
 def save_data(book, filename):

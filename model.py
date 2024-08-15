@@ -79,7 +79,7 @@ class Record:
         self.email = None
         self.address = None
         self.phones = []
-        
+
     def add_phone(self, phone):
         if self.find_phone(phone) is not None:
             raise ValueError("Record.PhoneDuplicate")
@@ -129,7 +129,7 @@ class Record:
 
     def remove_birthday(self):
         self.birthday = None
-
+        
     def set_email(self, email):
         self.email = Email(email)
 
@@ -138,7 +138,7 @@ class Record:
 
     def remove_email(self):
         self.email = None
-
+        
     def set_address(self, address):
         self.address = Address(address)
 
@@ -266,3 +266,43 @@ class AddressBook(UserDict):
                 })
 
         return upcoming_birthdays
+
+class Note:
+    def __init__(self, title, note):
+        self.title = title
+        self.note = note
+
+    def __str__(self):
+        return f"Title: {self.title}\r\nNote: {self.note}"
+
+class NoteBook(UserDict):
+    def add_note(self, note):
+        if note.title in self.data:
+            raise ValueError('NoteBook.DuplicateTitle')
+
+        if isinstance(note, Note):
+            self.data[str(note.title)] = note
+        else:
+            raise ValueError("NoteBook.ValueMustBeNote")
+
+    def find(self, field, value):
+        result = None
+        if field == "title":
+            if value in self.data:
+                result = self.data[value]
+        elif field == "note":
+            for note in self.values():
+                if str(note.note) == value:
+                    result = value
+        else:
+            raise ValueError()
+    
+        if result is None:
+            raise ValueError('NoteBook.NotFound')
+        return result
+
+    def remove(self, title):
+        if title in self.data:
+            self.data.pop(title)
+        else:
+            raise ValueError('NoteBook.NotFound')
