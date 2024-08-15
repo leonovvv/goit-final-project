@@ -151,7 +151,7 @@ def remove_phone(args, book):
     book.find("name", name).remove_phone(phone)
 
     return "Phone removed."
-
+    
 @error_decorator
 def set_birthday(args, book):
     name, birthday = args
@@ -188,7 +188,7 @@ def birthdays(args, book):
         result += f"{item['name']} - {item['congratulation_date']}\r\n"
 
     return result.strip()
-
+    
 @error_decorator
 def set_email(args, book):
     name, email = args
@@ -257,10 +257,33 @@ def get_all_notes(book):
     return result.strip()
 
 @error_decorator
+def get_notes(args, book: NoteBook):
+    if len(args) == 0:
+        return get_all_notes(book)
+
+    tag, *_ = args  
+    result = []
+
+    for note in book.values():
+        if tag in note.tags:
+            result.append(note)
+
+    if len(result) == 0:
+        return "Zero notes with this tag"
+
+    return str("\r\n".join(str(i) for i in sorted(result, key=lambda note: note.tags)))
+
+@error_decorator
 def remove_note(args, book: NoteBook):
     title, *_ = args
     book.remove(title)
     return "Note removed"
+
+@error_decorator
+def add_tag(args, book: NoteBook):
+    title, tag, *_ = args
+    book.find("title", title).add_tag(tag)
+    return "Tag added"
 
 @error_decorator
 def save_data(book, filename):
