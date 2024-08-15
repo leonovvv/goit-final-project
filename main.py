@@ -1,5 +1,41 @@
 ﻿from model import AddressBook, NoteBook
 import viewmodel as vm
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+
+commands = [
+        "add",
+        "add-note",
+        "add-phone",
+        "add-tag",
+        "all",
+        "birthdays",
+        "change-phone",
+        "close",
+        "exit",
+        "get",
+        "get-address",
+        "get-birthday",
+        "get-email",
+        "get-note",
+        "get-notes",
+        "get-phone",
+        "hello",
+        "remove",
+        "remove-address",
+        "remove-birthday",
+        "remove-email",
+        "remove-note",
+        "remove-phone",
+        "set-address",
+        "set-birthday",
+        "set-email",
+        "update-note"
+        ]
+
+completer = WordCompleter(commands, ignore_case=True)
+
+session = PromptSession(completer=completer)
 
 def main():
     load_result = vm.load_data("addressbook.pkl")
@@ -22,7 +58,7 @@ def main():
 
     print("Welcome to the assistant bot!")
     while True:
-        user_input = input("Enter a command: ")
+        user_input = session.prompt("Enter a command: ")
         command, *args = vm.parse_input(user_input)
 
         if command in ["close", "exit"]:
@@ -78,6 +114,10 @@ def main():
             print(vm.add_note(args, note_book))
         elif command == "get-note":
             print(vm.get_note(args, note_book))
+        elif command == "get-notes":
+            print(vm.get_notes(args, note_book))
+        elif command == "add-tag":
+            print(vm.add_tag(args, note_book))
         elif command == "update-note":
             print(vm.add_note(args, note_book))
         elif command == "remove-note":

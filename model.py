@@ -268,12 +268,17 @@ class AddressBook(UserDict):
         return upcoming_birthdays
 
 class Note:
-    def __init__(self, title, note):
+    def __init__(self, title, note, tags = []):
         self.title = title
         self.note = note
+        self.tags = tags
+
+    def add_tag(self, tag):
+        self.tags.append(tag)
+        self.tags = sorted(self.tags)
 
     def __str__(self):
-        return f"Title: {self.title}\r\nNote: {self.note}"
+        return f"Title: {self.title}\r\nTags: {self.tags}\r\nNote: {self.note}"
 
 class NoteBook(UserDict):
     def add_note(self, note):
@@ -293,6 +298,10 @@ class NoteBook(UserDict):
         elif field == "note":
             for note in self.values():
                 if str(note.note) == value:
+                    result = value
+        elif field == "tags":
+            for note in self.values():
+                if value in note.tags:
                     result = value
         else:
             raise ValueError()
