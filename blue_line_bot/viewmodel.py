@@ -56,13 +56,13 @@ def error_decorator(func):
                 "Input a valid command."
             )
             return error_output(error_message)
-        
+
         except KeyError:
             return info_output("Contact was not found")
-        
+
         except IndexError:
             return info_output("Give me contact name to return phone for, please.")
-        
+
         except IOError as ex:
             error_code = str(ex)
             error_message = IO_ERROR_MESSAGES.get(
@@ -70,7 +70,7 @@ def error_decorator(func):
                 "Oops... Something went wrong"
             )
             return error_output(error_message)
-        
+
         except Exception as ex:
             print(ex)
             return error_output("Oops... Something went wrong")
