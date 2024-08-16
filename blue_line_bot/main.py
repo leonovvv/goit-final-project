@@ -2,9 +2,11 @@
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.styles import Style
 
-from model import AddressBook, NoteBook
-import viewmodel as vm
+from blue_line_bot.model import AddressBook, NoteBook
+import blue_line_bot.viewmodel as vm
 
+# List of all commands that would be used for basic auto-completion
+# at the start of the user prompt
 commands = [
     "add",
     "add-note",
@@ -37,6 +39,7 @@ commands = [
 
 completer = WordCompleter(commands, ignore_case=True)
 
+# Basic styling of console auto-complete popup window
 style = Style.from_dict(
     {
         "completion-menu.completion": "bg:#008888 #ffffff",
@@ -51,6 +54,7 @@ session = PromptSession(completer=completer, style=style)
 
 
 def main():
+    # Loading pickled addressbook, if one exists
     load_result = vm.load_data("addressbook.pkl")
     if isinstance(load_result, str):
         print(load_result)
@@ -60,6 +64,7 @@ def main():
     else:
         address_book = load_result
 
+    # Loading pickled notebook, if one exists
     load_result = vm.load_data("notebook.pkl")
     if isinstance(load_result, str):
         print(load_result)
@@ -72,9 +77,15 @@ def main():
     print("Welcome to the assistant bot!")
     print("Enter 'help' to see possible commands")
     while True:
-        user_input = session.prompt("Enter a command: ")
+        try:
+            user_input = session.prompt("Enter a command: ")
+        except KeyboardInterrupt:
+            # Assume that KeyboardInterrupt (Ctrl-C) is an exit command
+            print('KeyboardInterrupt detected, gracefully exiting!')
+            user_input = 'exit'
         command, *args = vm.parse_input(user_input)
 
+        # Before exiting, make sure to serialize save all the data to the disk
         if command in ["close", "exit"]:
             print("Good bye!")
             save_result = vm.save_data(address_book, "addressbook.pkl")

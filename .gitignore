@@ -175,3 +175,6 @@ cython_debug/
 
 # .pyenv config file
 .python-version
+
+# Mac-os finder files setup
+.DS_Store

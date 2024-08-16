@@ -1,9 +1,9 @@
 ﻿import pickle
 
-from colorama import Fore
+from colorama import Fore, Style
 from prettytable import PrettyTable
 
-from model import AddressBook, Record, NoteBook, Note
+from blue_line_bot.model import AddressBook, Record, NoteBook, Note
 
 # Human-readable error messages for different error codes
 VALUE_ERROR_MESSAGES = {
@@ -19,6 +19,9 @@ VALUE_ERROR_MESSAGES = {
     "AddressBook.DuplicateName": "This name is already exists in the address book",
     "AddressBook.NotFound": "This value does not exist in the address book",
     "AddressBook.DaysMustBeInt": "Days value should be integer",
+    "AddressBook.WrongSearchField": (
+        "Search must be done by either name, email, phone, birthday or address"
+    ),
     "NoteBook.NotFound": "This value does not exist in the note book",
     "Birthdays.DaysMustBeNumeric": "Days for birthdays must be numeric value",
 }
@@ -29,14 +32,19 @@ IO_ERROR_MESSAGES = {
 }
 
 
+# Colored outputs - print error or info lines with red or yellow colors
+# and reset style afterwards to avoid style spreading on next outputs
+
 def error_output(line):
-    return Fore.LIGHTRED_EX + "! " + line
+    return Fore.LIGHTRED_EX + "! " + line + Style.RESET_ALL
 
 
 def info_output(line):
-    return Fore.LIGHTYELLOW_EX + "! " + line
+    return Fore.LIGHTYELLOW_EX + "! " + line + Style.RESET_ALL
 
 
+# Decorator to handle errors, returns colored messages
+# if anything goes wrong
 def error_decorator(func):
     def inner(*args, **kwargs):
         try:

@@ -8,7 +8,7 @@ class Name():
         if value is None or str(value).strip() == '':
             raise ValueError('Name.Required')
 
-        self.__value = str(value)
+        self.__value = str(value).strip()
 
     def __str__(self):
         return self.__value
@@ -16,7 +16,7 @@ class Name():
 
 class Phone():
     def __init__(self, value):
-        value = str(value)
+        value = str(value).strip()
 
         if not value.isdigit():
             raise ValueError("Phone.NotNumeric")
@@ -67,7 +67,7 @@ class Email():
         if not re.match(self.EMAIL_REGEX, value):
             raise ValueError('Email.Invalid')
 
-        self.__value = str(value)
+        self.__value = str(value).strip()
 
     def __str__(self):
         return self.__value
@@ -78,7 +78,7 @@ class Address():
         if value is None or str(value).strip() == '':
             raise ValueError('Address.Required')
 
-        self.__value = str(value)
+        self.__value = str(value).strip()
 
     def __str__(self):
         return self.__value
@@ -116,6 +116,7 @@ class Record:
         if self.find_phone(new_phone) is not None:
             raise ValueError("Record.PhoneDuplicate")
 
+        # Look for matching phone number and edit it
         i = 0
         while i < len(self.phones):
             if str(self.phones[i]) == old_phone:
@@ -183,6 +184,7 @@ class Record:
         self.address = None
     # endregion
 
+    # Simple formatting of the whole record for pretty output
     def __str__(self):
         result = f"Name: {str(self.name)}"
 
@@ -235,7 +237,7 @@ class AddressBook(UserDict):
                 if str(record.address) == value:
                     result = value
         else:
-            raise ValueError()
+            raise ValueError('AddressBook.WrongSearchField')
 
         if result is None:
             raise ValueError('AddressBook.NotFound')
@@ -266,7 +268,7 @@ class AddressBook(UserDict):
                 if value in str(record.address).lower():
                     result.append(record)
         else:
-            raise ValueError()
+            raise ValueError("AddressBook.WrongSearchField")
 
         return result
 
@@ -284,6 +286,8 @@ class AddressBook(UserDict):
         today = datetime.today().date()
         upcoming_birthdays = []
 
+        # For simplicity, replace year of birthday with current year and
+        # then see if it is within the given days
         for name in self.data:
             birthday = self.data[name].birthday
             if birthday is None:
@@ -346,11 +350,11 @@ class NoteBook(UserDict):
         elif field == "note":
             for note in self.values():
                 if value in str(note.note):
-                    result = value
+                    result = note
         elif field == "tags":
             for note in self.values():
                 if value in note.tags:
-                    result = value
+                    result = note
         else:
             raise ValueError()
 
