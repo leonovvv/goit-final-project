@@ -146,7 +146,7 @@ def records_table(records: list):
     table = PrettyTable()
     table.field_names = ["Name", "Email", "Birthday", "Phones", "Address"]
 
-    for record in records:
+    for record in sorted(records, key=lambda record: str(record.name)):
         name = Fore.CYAN + str(record.name) + Fore.RESET
         email = ((Fore.GREEN + str(record.email))
                  if record.email is not None else "---") + Fore.RESET
@@ -377,7 +377,7 @@ def notes_table(notes: list):
     table = PrettyTable()
     table.field_names = ["Title", "Tags", "Note"]
 
-    for note in notes:
+    for note in sorted(notes, key=lambda note: note.tags):
         title = Fore.CYAN + note.title + Fore.RESET
         tags = ((Fore.MAGENTA + ', '.join(note.tags))
                 if note.tags else "---") + Fore.RESET
