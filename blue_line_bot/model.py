@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import re
 
 
-class Name():
+class Name:
     def __init__(self, value):
         if value is None or str(value).strip() == '':
             raise ValueError('Name.Required')
@@ -14,7 +14,7 @@ class Name():
         return self.__value
 
 
-class Phone():
+class Phone:
     def __init__(self, value):
         value = str(value).strip()
 
@@ -30,7 +30,7 @@ class Phone():
         return self.__value
 
 
-class Birthday():
+class Birthday:
     def __init__(self, value):
         try:
             self.__value = datetime.strptime(
@@ -55,7 +55,7 @@ class Birthday():
         return str(self.__value.strftime("%d.%m.%Y"))
 
 
-class Email():
+class Email:
     # RFC 5322 compliant regex, which allows
     # both domain-based and IP-address based emails
     EMAIL_REGEX = """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
@@ -73,7 +73,7 @@ class Email():
         return self.__value
 
 
-class Address():
+class Address:
     def __init__(self, value):
         if value is None or str(value).strip() == '':
             raise ValueError('Address.Required')
@@ -226,7 +226,7 @@ class AddressBook(UserDict):
                     result = value
         elif field == "phone":
             for record in self.values():
-                if str(record.find_phone(value)) != None:
+                if str(record.find_phone(value)) is not None:
                     result = value
         elif field == "birthday":
             for record in self.values():
@@ -257,7 +257,7 @@ class AddressBook(UserDict):
                     result.append(record)
         elif field == "phone":
             for record in self.values():
-                if record.find_phone(value) != None:
+                if record.find_phone(value) is not None:
                     result.append(record)
         elif field == "birthday":
             for record in self.values():
@@ -313,10 +313,10 @@ class AddressBook(UserDict):
 
 
 class Note:
-    def __init__(self, title, note, tags=[]):
+    def __init__(self, title, note, tags=None):
         self.title = title
         self.note = note
-        self.tags = tags
+        self.tags = tags or []
 
     def add_tag(self, tag):
         self.tags.append(tag)
