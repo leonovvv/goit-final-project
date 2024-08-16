@@ -28,7 +28,7 @@ VALUE_ERROR_MESSAGES = {
 
 IO_ERROR_MESSAGES = {
     "IO.SaveFailed": "Failed to save address book",
-    "IO.LoadFailed": "Failed to save address book",
+    "IO.LoadFailed": "Failed to load address book",
 }
 
 
