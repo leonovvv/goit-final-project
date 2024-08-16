@@ -337,7 +337,7 @@ def add_note(args, book: NoteBook):
         book.add_note(note)
         message = "Note added."
     else:
-        book[title].note = note
+        book[title].note = note_text
 
     return message
 
