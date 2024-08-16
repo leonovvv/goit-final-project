@@ -1,41 +1,45 @@
-﻿from blue_line_bot.model import AddressBook, NoteBook
-import blue_line_bot.viewmodel as vm
-from prompt_toolkit import PromptSession
+﻿from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.styles import Style
 
+from blue_line_bot.model import AddressBook, NoteBook
+import blue_line_bot.viewmodel as vm
+
+# List of all commands that would be used for basic auto-completion
+# at the start of the user prompt
 commands = [
-        "add",
-        "add-note",
-        "add-phone",
-        "add-tag",
-        "all",
-        "birthdays",
-        "change-phone",
-        "close",
-        "exit",
-        "get",
-        "get-address",
-        "get-birthday",
-        "get-email",
-        "get-note",
-        "get-notes",
-        "get-phone",
-        "hello",
-        "remove",
-        "remove-address",
-        "remove-birthday",
-        "remove-email",
-        "remove-note",
-        "remove-phone",
-        "set-address",
-        "set-birthday",
-        "set-email",
-        "update-note"
-        ]
+    "add",
+    "add-note",
+    "add-phone",
+    "add-tag",
+    "all",
+    "birthdays",
+    "change-phone",
+    "close",
+    "exit",
+    "get",
+    "get-address",
+    "get-birthday",
+    "get-email",
+    "get-note",
+    "get-notes",
+    "get-phone",
+    "hello",
+    "remove",
+    "remove-address",
+    "remove-birthday",
+    "remove-email",
+    "remove-note",
+    "remove-phone",
+    "set-address",
+    "set-birthday",
+    "set-email",
+    "update-note"
+]
 
 completer = WordCompleter(commands, ignore_case=True)
 
+# Basic styling of console auto-complete popup window
 style = Style.from_dict(
     {
         "completion-menu.completion": "bg:#008888 #ffffff",
@@ -48,7 +52,9 @@ style = Style.from_dict(
 
 session = PromptSession(completer=completer, style=style)
 
+
 def main():
+    # Loading pickled addressbook, if one exists
     load_result = vm.load_data("addressbook.pkl")
     if isinstance(load_result, str):
         print(load_result)
@@ -58,6 +64,7 @@ def main():
     else:
         address_book = load_result
 
+    # Loading pickled notebook, if one exists
     load_result = vm.load_data("notebook.pkl")
     if isinstance(load_result, str):
         print(load_result)
@@ -68,16 +75,23 @@ def main():
         note_book = load_result
 
     print("Welcome to the assistant bot!")
+    print("Enter 'help' to see possible commands")
     while True:
-        user_input = session.prompt("Enter a command: ")
+        try:
+            user_input = session.prompt("Enter a command: ")
+        except KeyboardInterrupt:
+            # Assume that KeyboardInterrupt (Ctrl-C) is an exit command
+            print('KeyboardInterrupt detected, gracefully exiting!')
+            user_input = 'exit'
         command, *args = vm.parse_input(user_input)
 
+        # Before exiting, make sure to serialize save all the data to the disk
         if command in ["close", "exit"]:
             print("Good bye!")
             save_result = vm.save_data(address_book, "addressbook.pkl")
             if save_result is not None:
                 print(save_result)
-            
+
             save_result = vm.save_data(note_book, "notebook.pkl")
             if save_result is not None:
                 print(save_result)
@@ -137,6 +151,7 @@ def main():
             print(vm.help())
         else:
             print(vm.error_output("Invalid command."))
+
 
 if __name__ == "__main__":
     main()
